@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Conversor de Imagem para WebP</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap');
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background-color: #121212;
+      color: #f0f0f0;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #ffffff;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #1e1e1e;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+
+    .file-input {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .custom-file-label {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      border: 1px solid #4caf50;
+      background: #2c2c2c;
+      color: #f0f0f0;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .custom-file-label:hover {
+      background: #3a3a3a;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .images {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 2rem;
+    }
+
+    .image-card {
+      flex: 1;
+      min-width: 280px;
+      text-align: center;
+    }
+
+    /* Preview container with SVG and image */
+    .preview {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
+    }
+
+    .preview svg {
+      color: #888;
+      width: 150px;
+      height: 150px;
+    }
+
+    .preview img {
+      display: none;
+      border-radius: 8px;
+      border: 1px solid #555;
+      margin-top: 0.5rem;
+      max-width: 100%;
+    }
+
+    .info {
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+
+    #download {
+      display: inline-block;
+      margin-top: 2rem;
+      background-color: #27ae60;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+
+    #download:hover {
+      background-color: #219150;
+    }
+
+    .spinner {
+      display: none;
+      margin: 1rem auto;
+      width: 40px;
+      height: 40px;
+      border: 5px solid rgba(255,255,255,0.1);
+      border-top: 5px solid #4caf50;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .quality-info {
+      font-family: 'Fira Code', monospace;
+      font-size: 1.1rem;
+      text-align: center;
+      color: #80ffaa;
+      margin-bottom: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Conversor de Imagem para WebP</h1>
+
+    <div class="file-input">
+      <label for="input" class="custom-file-label">Escolher imagem</label>
+      <input type="file" id="input" accept="image/*" />
+    </div>
+
+    <div class="spinner" id="spinner"></div>
+
+    <div class="quality-info">
+      Fator de redução: <strong>0.7</strong>
+    </div>
+
+    <div class="images">
+      <div class="image-card">
+        <h2>Original</h2>
+        <div id="originalPreview" class="preview" aria-label="Imagem original">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-icon lucide-image">
+            <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+            <circle cx="9" cy="9" r="2"/>
+            <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+          </svg>
+          <img id="original" alt="Imagem original" />
+        </div>
+        <div class="info" id="originalSize">Tamanho: -</div>
+      </div>
+
+      <div class="image-card">
+        <h2>Convertida (WebP)</h2>
+        <div id="convertedPreview" class="preview" aria-label="Imagem convertida">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-icon lucide-image">
+            <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+            <circle cx="9" cy="9" r="2"/>
+            <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+          </svg>
+          <img id="converted" alt="Imagem convertida" />
+        </div>
+        <div class="info" id="convertedSize">Tamanho: -</div>
+      </div>
+    </div>
+
+    <div style="text-align: center;">
+      <a id="download" download="imagem-convertida.webp" href="#">Baixar WebP</a>
+    </div>
+  </div>
+
+  <script>
+    const input = document.getElementById('input');
+    const originalImg = document.getElementById('original');
+    const originalPreview = document.getElementById('originalPreview');
+    const convertedImg = document.getElementById('converted');
+    const convertedPreview = document.getElementById('convertedPreview');
+    const originalSizeText = document.getElementById('originalSize');
+    const convertedSizeText = document.getElementById('convertedSize');
+    const downloadLink = document.getElementById('download');
+    const spinner = document.getElementById('spinner');
+
+    input.addEventListener('change', function (event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      spinner.style.display = 'block';
+
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        const img = new Image();
+        img.onload = function () {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+
+          const webpDataUrl = canvas.toDataURL('image/webp', 0.7);
+          const webpBlob = dataURLtoBlob(webpDataUrl);
+
+          // Atualiza preview original, mostra imagem e esconde SVG
+          originalImg.src = e.target.result;
+          originalImg.style.display = 'block';
+          const originalSvg = originalPreview.querySelector('svg');
+          if(originalSvg) originalSvg.style.display = 'none';
+
+          // Atualiza preview convertida, mostra imagem e esconde SVG
+          convertedImg.src = webpDataUrl;
+          convertedImg.style.display = 'block';
+          const convertedSvg = convertedPreview.querySelector('svg');
+          if(convertedSvg) convertedSvg.style.display = 'none';
+
+          spinner.style.display = 'none';
+
+          originalSizeText.textContent = `Tamanho: ${formatSize(file.size)}`;
+          convertedSizeText.textContent = `Tamanho: ${formatSize(webpBlob.size)}`;
+
+          const downloadUrl = URL.createObjectURL(webpBlob);
+          downloadLink.href = downloadUrl;
+        };
+
+        img.src = e.target.result;
+      };
+
+      reader.readAsDataURL(file);
+    });
+
+    function dataURLtoBlob(dataurl) {
+      const arr = dataurl.split(',');
+      const mime = arr[0].match(/:(.*?);/)[1];
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while(n--){
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      return new Blob([u8arr], {type:mime});
+    }
+
+    function formatSize(bytes) {
+      const kb = bytes / 1024;
+      if (kb >= 1000) {
+        return (kb / 1024).toFixed(2) + ' MB';
+      } else {
+        return kb.toFixed(2) + ' KB';
+      }
+    }
+  </script>
+</body>
+</html>
