@@ -258,6 +258,8 @@
           convertedSizeText.textContent = `Tamanho: ${formatSize(webpBlob.size)}`;
 
           const downloadUrl = URL.createObjectURL(webpBlob);
+          const originalName = file.name.replace(/\.[^/.]+$/, "");
+          downloadLink.download = `${originalName} - convertida.webp`;
           downloadLink.href = downloadUrl;
         };
         img.src = e.target.result;
